@@ -4,6 +4,12 @@ Date: "27 February 2021"
 title: "CausalHW1"
 output: html_document
 ---
+*Part 1*
+**Find the github repo named RDD1 at the following github link**
+
+                https://github.com/Fjolle/RDD1
+
+
 
 ```{r setup, include=FALSE}
 
@@ -40,6 +46,3 @@ knitr::opts_chunk$set(error = TRUE)
                to="README.md")
 ```
 
-```{r Part 3}
-hansen_dwi$dui=ifelse(hansen_dwi$bac1>=0.08,1,0)
-```
