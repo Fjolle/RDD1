@@ -4,27 +4,6 @@ Date: "27 February 2021"
 title: "CausalHW1"
 output: html_document
 ---
-*Part 1*
-**Download Hansen_dwi.dta from github at the following address.**
-
-use https://github.com/scunning1975/causal-inference-class/raw/master/hansen_dwi, clear
-
-*Part 2*
-**Summary of the paper:** 
-
-The paper Punishment and Deterrence: Evidence from Drunk Driving by Benjamin Hansen studies the effects of punishments in deterrence from drunk driving. Hansen demonstrates the results by comparing two different driving under influence (DUI) thresholds.He distinguishes the two cutoff levels as follows: A blood alcohol content (BAC) level above 0.08 is considered a DUI, while a BAC level above 0.15 is considered an aggravated DUI. The aggravated DUI results in higher punishments as compared to DUI. He finds out that, broadly speaking, higher punishments and sanctions result in smaller number of future drunk driving. Moreover, BAC above the level threshold set face higher punishments and sanctions if repeated in the future. The paper restricts attention to drivers above the legal drinking age. Moreover, certain demographics, such as age, gender, accident and race are considered to check whether or not covariates are balanced at the threshold level of 0.08 and 0.15. He finds out that the demographic factors are stable across the dui punishments. The stable results indicate that the characteristics considered provide credibility that the regression discontinuity design gives unbiased estimates. This finding implies that neither the drunk driver nor the police officer are able to manipulate testing at the cutoff points of 0.08 and 0.15. 
-
-A major question that the paper tries to answer is whether or not bac limits reduce future drunk driving. The author studies this question by estimating the effect of having bac over the dui limit on recidivism within four years of the initial offense. 
-The 4 year time period is chosen for capturing the medium run effect of punishment on the likelihood of recidivism. Recidivism acts as an indicator variable in the data set, taking the value of 0 if the drivers are not pulled over for being suspected of drunk driving, and 1 if the drivers are subjected to a test or refuse a test by the police officer within four years of the original stop. 
-
-He finds out that drivers found to have a bac level about the 0.08 threshold decrease recidivism by 2 percentage points during the four-year follow-up window. Moreover, drivers with prior tests reduce recidivism my a larger margin within the 4 year period than drivers without prior tests. This is likely the result of the penalties being much higher for drivers being caught drunk driving for the second time. 
-
-Considering all drunk drivers above the legal drinking age, those with a bac over the 0.08 threshold show a decrease in likelihood of recidivism. The largest decrease in likelihood of recidivism is the bac level between 0.08 and 0.15. This shows that having a bac over the dui threshold decreases the likelihood of drunk driving in the future. Moreover, having a bac results in reduced future accidents. Additionally, drivers with at least one prior test are less likely to refuse a breath test. This is potentially due to the offenders having learned from experience that refusing to take a breath test could result in higher punishments. Drivers with no prior tests, on the other hand, show no change in their probability of refusing the breath test. 
-Further, Hansen finds that drivers with a prior test are less likely to be pulled over for a second time. 
-
-Various sanctions and punishments affect how severe each bac limit is. Hansen finds that a 10% increase in sanctions and punishments is associated with a 2.3% decrease in drunk driving. He further considers different channels of drunk driving related to criminality as a potential explanation of the reduction in recidivism. Between incapacitation, rehabilitation and deterrence, the latter shows the be the most effective channel. Based on the rational model of criminality, likelihood of recidivism as a dui increases, decreases as sanctions and punishments increase. However, contrary to the rational model of criminality, likelihood of recidivism as the aggravated dui increases, decreases with an increase in punishments and sanctions. 
-
-Hansen concludes by suggesting that a larger amount of resources through advertisement and public service announcements be spent to inform the 0.15 threshold group, provided that this group is responsible for the largest number of fatalities in the society. 
 
 ```{r setup, include=FALSE}
 
