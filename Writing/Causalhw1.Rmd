@@ -60,3 +60,7 @@ knitr::opts_chunk$set(error = TRUE)
    file.rename(from="scripts/mycode.md", 
                to="README.md")
 ```
+
+```{r Part 3}
+hansen_dwi$dui=ifelse(hansen_dwi$bac1>=0.08,1,0)
+```
