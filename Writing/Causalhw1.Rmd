@@ -9,40 +9,7 @@ output: html_document
 
                 https://github.com/Fjolle/RDD1
 
+*Part 2*
+**Summary of the paper:** 
 
-
-```{r setup, include=FALSE}
-
-knitr::opts_chunk$set(echo = TRUE)
-
-library(rddensity)
-library(tidyverse)
-library(cli)
-library(haven)
-library(rmarkdown)
-library(haven)
-library(stargazer)
-library(estimatr)
-library(rdd)
-library(rdrobust)
-library(multilevelPSA)
-library(cobalt)
-library(MatchIt)
-library(optmatch)
-library(jtools)
-library(ggplot2)
-library(cobalt)
-library(plyr)
-library(plotly)
-
-```
-
-```{r, echo=FALSE}
-knitr::opts_chunk$set(error = TRUE)
-```
-
-```{r, include=FALSE}
-   file.rename(from="scripts/mycode.md", 
-               to="README.md")
-```
 
