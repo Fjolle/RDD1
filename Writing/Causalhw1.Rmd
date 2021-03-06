@@ -1,9 +1,12 @@
 ---
-Name:Fjolle Gjonbalaj
-Date: "5 March 2021"
-title: "CausalHW1"
-output: html_document
+title: "Causalhw1"
+author: "Fjolle Gjonbalaj"
+date: "5 March 2021"
+output:
+  pdf_document: default
+  html_document: default
 ---
+
 *Part 1*
 **Find the github repo named RDD1 at the following github link**
 
@@ -24,9 +27,10 @@ Further, Hansen finds that drivers with a prior test are less likely to be pulle
 Various sanctions and punishments affect how severe each bac limit is. Hansen finds that a 10% increase in sanctions and punishments is associated with a 2.3% decrease in drunk driving. He further considers different channels of drunk driving related to criminality as a potential explanation of the reduction in recidivism. Between incapacitation, rehabilitation and deterrence, the latter shows the be the most effective channel. Based on the rational model of criminality, likelihood of recidivism as a dui increases, decreases as sanctions and punishments increase. However, contrary to the rational model of criminality, likelihood of recidivism as the aggravated dui increases, decreases with an increase in punishments and sanctions. 
 
 Hansen concludes by suggesting that a larger amount of resources through advertisement and public service announcements be spent to inform the 0.15 threshold group, provided that this group is responsible for the largest number of fatalities in the society. 
-```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = TRUE)
+```{r, echo=TRUE}
+
+knitr::opts_chunk$set(echo = FALSE)
 
 library(rddensity)
 library(tidyverse)
@@ -52,8 +56,205 @@ library(RDHonest)
 ```
 
 ```{r, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_knit$set(root.dir= normalizePath('..'))
-knitr::opts_chunk$set(error = FALSE)
+knitr::opts_chunk$set(error = TRUE)
+hansen_dwi<-read.csv("https://raw.githubusercontent.com/Fjolle/RDD1/main/Data/hansen_dwi.csv")
 ```
+
+```{r Part 3, echo=TRUE}
+hansen_dwi$dui=ifelse(hansen_dwi$bac1>=0.08,1,0)
+```
+
+
+```{r Part 4, echo=TRUE}
+density <- rddensity(hansen_dwi$bac1, c = 0.08)
+
+rdplotdensity(density, hansen_dwi$bac1)
+
+ggplot(hansen_dwi, aes(x=hansen_dwi$bac1))+
+  geom_histogram(binwidth=0.001, color="gray")+
+  geom_vline(xintercept=0.08)
+```
+
+I use rddensity to check for manipulation on the running variable at the cutoff point of 0.08. The p-value of 0.8897 indicates that we cannot reject the null hypothesis that the density in the data is continuous at the cutoff point of 0.08. As such, there is no evidence of manipulation in the data. 
+I also visually represent the rd density function, which appears to have a slight gap. However, the gap falls inside the confidence interval on both sides. Hence, no evidence of manipulation is found. 
+The fairly smooth looking histogram is additional evidence that there isn't manipulation in the data. My findings coincide with the findings of the paper.
+
+```{r part 5,echo=TRUE}
+hansen_dwi_2 <- hansen_dwi %>%
+  mutate(bac1_2 = bac1 - 0.08)
+ 
+hansen_dwi2 <- hansen_dwi_2 %>%
+  filter(bac1_2 >=-0.05 & bac1_2 <= 0.05)
+#Check if covariates are balanced at the cutoff 
+m1 = lm(male ~ dui*bac1_2, data=hansen_dwi_2)
+stargazer(m1, type = "text")
+m2 = lm(white ~ dui*bac1_2, data=hansen_dwi_2)
+stargazer(m2, type = "text")
+m3 = lm(aged ~ dui*bac1_2, data=hansen_dwi_2)
+stargazer(m3, type = "text")
+m4 = lm(acc ~ dui*bac1_2, data=hansen_dwi_2)
+```
+
+```{r PART 5, echo=TRUE}
+stargazer(m1,m2,m3,m4, type = "text")
+```
+
+For creating a covariate balance table I first re-centered the data around 0 and considered a bandwidth of 0.05 for bac1. We fail to reject the null hypothesis that there is no difference between the treatment and control group. That is, we do not have enough evidence to conclude that demographic factors(male, white, age, accident) considered are unrelated to the 0.08 cutoff. This is indicative of the fact that the characteristics considered are balanced across BAC levels. This balance in the covariates makes unbiased estimates on recidivism possible.
+
+My findings are very similar to those of Hansen's in table 2 with negligible differences accept for the variable "aged". To get the same coefficient as that of Hansen's for the age variable we could divide the variable by 100, moving the coefficient two decimal places to the right. 
+
+```{r Part 6, echo=TRUE}
+categories <- hansen_dwi$bac1
+hansen_dwi2 <- hansen_dwi %>%
+  filter(bac1 >= 0 & bac1 <= 0.2)
+
+male <- split(hansen_dwi2$male, cut(hansen_dwi2$bac1, 191)) %>%
+  lapply(mean) %>%
+  unlist()
+agg_hansen_dwi_male <- data.frame(male = male, bac1 = seq(0.01, 0.2, by = 0.001))
+
+white <- split(hansen_dwi2$white, cut(hansen_dwi2$bac1, 191)) %>%
+  lapply(mean) %>%
+  unlist()
+agg_hansen_dwi_white <- data.frame(white = white, bac1 = seq(0.01, 0.2, by = 0.001))
+
+acc <- split(hansen_dwi2$acc, cut(hansen_dwi2$bac1, 191)) %>%
+  lapply(mean) %>%
+  unlist()
+agg_hansen_dwi_acc <- data.frame(acc = acc, bac1 = seq(0.01, 0.2, by = 0.001))
+
+aged <- split(hansen_dwi2$aged, cut(hansen_dwi2$bac1, 191)) %>%
+  lapply(mean) %>%
+  unlist()
+agg_hansen_dwi_aged <- data.frame(aged = aged, bac1 = seq(0.01, 0.2, by = 0.001))
+hansen_dwi2 <- hansen_dwi2 %>%
+  mutate(gg_group = case_when(bac1 > 0.08 ~ 1, TRUE ~ 0))
+
+#Male
+linear_male <- ggplot(hansen_dwi2, aes(bac1, male)) +
+  geom_point(aes(x = bac1, y = male), data = agg_hansen_dwi_male) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, male, group = gg_group), method = "lm") + 
+  labs(x = "BAC")
+quadratic_male <- ggplot(hansen_dwi2, aes(bac1, male)) +
+  geom_point(aes(x = bac1, y = male), data = agg_hansen_dwi_male) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, male, group = gg_group), method = "lm", 
+              formula = y ~ x + I(x^2)) +
+  labs(x = "BAC")
+#White
+linear_white <- ggplot(hansen_dwi2, aes(bac1, white)) +
+  geom_point(aes(x = bac1, y = white), data = agg_hansen_dwi_white) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, white, group = gg_group), method = "lm") +
+  labs(x = "BAC")
+quadratic_white <- ggplot(hansen_dwi2, aes(bac1, white)) +
+  geom_point(aes(x = bac1, y = white), data = agg_hansen_dwi_white) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, white, group = gg_group), method = "lm",
+              formula = y ~ x + I(x^2)) +
+  labs(x = "BAC")
+#Accident
+linear_acc <- ggplot(hansen_dwi2, aes(bac1, acc)) +
+  geom_point(aes(x = bac1, y = acc), data = agg_hansen_dwi_acc) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, acc, group = gg_group), method = "lm") +
+  labs(x = "BAC")
+quadratic_acc <- ggplot(hansen_dwi2, aes(bac1, acc)) +
+  geom_point(aes(x = bac1, y = acc), data = agg_hansen_dwi_acc) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, acc, group = gg_group), method = "lm", 
+              formula = y ~ x + I(x^2)) +
+  labs(x = "BAC")
+#Age
+linear_age <- ggplot(hansen_dwi2, aes(bac1, aged)) +
+  geom_point(aes(x = bac1, y = aged), data = agg_hansen_dwi_aged) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, aged, group = gg_group), method = "lm") +
+  labs(x = "BAC")
+quadratic_age <- ggplot(hansen_dwi2, aes(bac1, aged)) +
+  geom_point(aes(x = bac1, y = aged), data = agg_hansen_dwi_aged) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, aged, group = gg_group), method = "lm",
+              formula = y ~ x + I(x^2)) +
+  labs(x = "BAC")
+```
+
+```{r part 6, echo=TRUE}
+library(gridExtra)
+grid.arrange(linear_male, linear_white, linear_acc,
+             linear_age, nrow=4, top="Linear Discontinuity")
+grid.arrange(quadratic_male, quadratic_white,
+             quadratic_acc, quadratic_age, nrow=4, top="Quadratic Discontinuity")
+```
+
+In part 6 I fit bith the linrar and quadratic regression lines based on the regressions with the covariates which we would expect to remain unchanged across punishment thresholds if offenders or police are unable to manipulate the running variable. This stability in the predetermined characteristics gives further credibility that the regression discontinuity design delivers unbiased estimates. 
+
+This finding is similar to that of Hansen's, letting us conclude that neither the drunk driver not the police officer were able to manipulate testing at the 0.08 threshold. 
+
+
+```{r Part 7, echo=TRUE}
+
+RDestimate(recidivism ~ bac1, cutpoint = 0.08, bw = 0.05, data=hansen_dwi)
+RDHonest(recidivism ~ bac1, cutoff = 0.08, h=0.05,
+         kern="triangular", M=0.1, sclass="T", order = 1, data=hansen_dwi)
+
+RDestimate(recidivism ~ bac1 | bac1*dui, cutpoint = 0.08, bw = 0.05, data=hansen_dwi)
+RDHonest(recidivism ~ bac1 + bac1*dui, cutoff = 0.08, h=0.05,
+         kern="triangular", M=0.1, sclass="T", order = 1, data=hansen_dwi)
+
+RDestimate(recidivism ~ bac1 | bac1*dui + (bac1^2)*dui, cutpoint = 0.08,
+           bw = 0.05, data=hansen_dwi)
+RDHonest(recidivism ~ bac1 + bac1*dui + (bac1^2)*dui, cutoff = 0.08, h=0.05,
+         kern="triangular", M=0.1, sclass="T", order = 1, data=hansen_dwi)
+
+RDestimate(recidivism ~ bac1, cutpoint = 0.08, bw = 0.025, data=hansen_dwi)
+RDHonest(recidivism ~ bac1, cutoff = 0.08, h=0.025,
+         kern="triangular", M=0.1, sclass="T", order = 1, data=hansen_dwi)
+
+RDestimate(recidivism ~ bac1 | bac1*dui, cutpoint = 0.08, bw = 0.025, data=hansen_dwi)
+RDHonest(recidivism ~ bac1 + bac1*dui, cutoff = 0.08, h=0.025,
+         kern="triangular", M=0.1, sclass="T", order = 1, data=hansen_dwi)
+
+RDestimate(recidivism ~ bac1 | bac1*dui + (bac1^2)*dui, 
+           cutpoint = 0.08, bw = 0.025, data=hansen_dwi)
+RDHonest(recidivism ~ bac1 + bac1*dui + (bac1^2)*dui,
+         cutoff = 0.08, h=0.025, kern="triangular",
+         M=0.1, sclass="T", order = 1, data=hansen_dwi)
+
+```
+
+```{r Part 8, echo=TRUE}
+categories <- hansen_dwi$bac1
+hansen_dwi3 <- hansen_dwi %>%
+  filter(bac1 >= 0 & bac1 <= 0.15)
+recid <- split(hansen_dwi3$recidivism, cut(hansen_dwi3$bac1, 75)) %>%
+  lapply(mean) %>%
+  unlist()
+agg_hansen_dwi_recid <- data.frame(recidivism = recid, 
+                                   bac1 = seq(0.002, 0.15, by = 0.002))
+hansen_dwi3 <- hansen_dwi3 %>%
+  mutate(gg_group2 = case_when(bac1 > 0.08 ~ 1, TRUE ~ 0))
+
+linear_recid <- ggplot(hansen_dwi3, aes(bac1, recidivism)) +
+  geom_point(aes(x = bac1, y = recidivism), data = agg_hansen_dwi_recid) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, recidivism, group = gg_group2), method = "lm") + 
+  labs(x = "BAC", title = "All Offenders (linear)")
+
+quadratic_recid<- ggplot(hansen_dwi3, aes(bac1, recidivism)) +
+  geom_point(aes(x = bac1, y = recidivism), data = agg_hansen_dwi_recid) +
+  geom_vline(xintercept = 0.08, colour = "grey", linetype = 2) +
+  stat_smooth(aes(bac1, recidivism, group = gg_group2), method = "lm",
+              formula = y ~ x + I(x^2)) +
+  labs(x = "BAC", title = "All Offenders (quadratic)")
+```
+
+```{r part 8, echo=TRUE}
+grid.arrange(linear_recid,quadratic_recid,nrow=2)
+```
+
+*Part 9*
+
+I test the hypothesis that there is no bunching and that the covariates are balanced at the 0.08 cutoff. From the covariate balance table as well as the local linear regressions I found that there are no unusual jums or discontinuities in the plots. This is an indication that we are safe to apply the regression discontinuity method and get unbiased results for recidivism and ultimately getting reasonably believable results on the research question as to whether BAC limits reduce future drunk driving. 
 
